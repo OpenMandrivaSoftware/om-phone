@@ -1,21 +1,26 @@
 #pragma once
 
-#include <QCoreApplication>
+#include <QApplication>
 #include <QDBusObjectPath>
 #include <QList>
 
 #include "Modem.h"
 
-class ModemApplication:public QCoreApplication,public DBusObject {
+class Phone:public QApplication,public DBusObject {
 	Q_OBJECT
 public:
-	ModemApplication(int &argc, char **&argv);
+	Phone(int &argc, char **&argv);
 	QString mmVersion() const;
 	QList<QDBusObjectPath> modems() const;
 
-public Q_SLOTS:
+private Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
 	void voiceCallAdded(QDBusObjectPath path);
+
+public Q_SLOTS:
+	// D-Bus interface
+	Q_SCRIPTABLE bool show(QString url=QString());
+	Q_SCRIPTABLE bool hide();
 
 protected:
 	QList<Modem*> _modems;

@@ -1,4 +1,4 @@
-#include "ModemApplication.h"
+#include "Phone.h"
 #include "SIM.h"
 
 #include <QDBusConnection>
@@ -9,11 +9,25 @@
 #include <QDateTime>
 #include <QTimer>
 
+#include <QLabel>
+
 #include <iostream>
 #include <cassert>
 
-ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv),DBusObject(QStringLiteral("org.freedesktop.ModemManager1"), QDBusObjectPath("/org/freedesktop/ModemManager1"), "org.freedesktop.ModemManager1") {
+Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStringLiteral("org.freedesktop.ModemManager1"), QDBusObjectPath("/org/freedesktop/ModemManager1"), "org.freedesktop.ModemManager1") {
+	setApplicationDisplayName("Phone");
+	setOrganizationName("LinDev");
+	setOrganizationDomain("lindev.ch");
+
 	assert(QDBusConnection::systemBus().interface()->isServiceRegistered(_service));
+	QDBusConnection sb=QDBusConnection::sessionBus();
+
+	if(!sb.registerService("ch.lindev.phone")) {
+		std::cerr << "Failed to register on session bus" << std::endl;
+		QTimer::singleShot(0, this, &QCoreApplication::quit);
+		return;
+	}
+	sb.registerObject("/", this, QDBusConnection::ExportScriptableSlots);
 
 	std::cerr << "Using ModemManager " << qPrintable(mmVersion()) << std::endl;
 	QList<QDBusObjectPath> mdms = modems();
@@ -32,11 +46,11 @@ ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(arg
 	}
 }
 
-QString ModemApplication::mmVersion() const {
+QString Phone::mmVersion() const {
 	return DBusObject::property<QString>("Version");
 }
 
-QList<QDBusObjectPath> ModemApplication::modems() const {
+QList<QDBusObjectPath> Phone::modems() const {
 	QList<QDBusObjectPath> ret;
 	ManagedObjects obj=managedObjects();
 	for(auto const &k : obj.keys()) {
@@ -46,7 +60,7 @@ QList<QDBusObjectPath> ModemApplication::modems() const {
 	return ret;
 }
 
-void ModemApplication::messageAdded(QDBusObjectPath path, bool received) {
+void Phone::messageAdded(QDBusObjectPath path, bool received) {
 	if(received)
 		std::cerr << "Message received: ";
 	else
@@ -55,6 +69,17 @@ void ModemApplication::messageAdded(QDBusObjectPath path, bool received) {
 	std::cerr << qPrintable(path.path()) << std::endl;
 }
 
-void ModemApplication::voiceCallAdded(QDBusObjectPath path) {
+void Phone::voiceCallAdded(QDBusObjectPath path) {
 	std::cerr << "Voice call added: " << qPrintable(path.path()) << std::endl;
+}
+
+bool Phone::show(QString url) {
+	std::cerr << "Show called" << std::endl;
+	std::cerr << qPrintable(url) << std::endl;
+	return true;
+}
+
+bool Phone::hide() {
+	std::cerr << "Hide called" << std::endl;
+	return false;
 }
