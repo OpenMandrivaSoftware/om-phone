@@ -7,9 +7,11 @@
 class Modem:public QObject {
 	Q_OBJECT
 public:
+	Modem(QDBusObjectPath const &obj);
 	Modem(int index);
 
 	QDateTime networkTime() const;
+	QString IMEI() const;
 
 public Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
@@ -18,5 +20,5 @@ public Q_SLOTS:
 	bool sendSMS(QString const &recipient, QString const &text);
 
 protected:
-	QString	_dbusPath;
+	QDBusObjectPath	_dbusPath;
 };

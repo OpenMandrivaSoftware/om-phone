@@ -2,7 +2,7 @@
 
 #include <QCoreApplication>
 #include <QDBusObjectPath>
-#include <QString>
+#include <QList>
 
 #include "Modem.h"
 
@@ -11,11 +11,12 @@ class ModemApplication:public QCoreApplication {
 public:
 	ModemApplication(int &argc, char **&argv);
 	QString mmVersion() const;
+	QList<QDBusObjectPath> modems() const;
 
 public Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
 	void voiceCallAdded(QDBusObjectPath path);
 
 protected:
-	Modem _m0;
+	QList<Modem*> _modems;
 };

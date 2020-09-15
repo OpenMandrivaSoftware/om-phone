@@ -4,6 +4,7 @@
 #include <QDBusConnectionInterface>
 #include <QDBusInterface>
 #include <QDBusReply>
+#include <qdbusmetatype.h>
 
 #include <QDateTime>
 
@@ -11,15 +12,44 @@
 #include <cassert>
 
 static QString const mmService(QStringLiteral("org.freedesktop.ModemManager1"));
+typedef QMap<QString,QVariantMap> InterfaceList;
+typedef QMap<QDBusObjectPath, InterfaceList> ManagedObjectList;
+Q_DECLARE_METATYPE(InterfaceList);
+Q_DECLARE_METATYPE(ManagedObjectList);
 
-ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv),_m0(0) {
+ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv) {
 	assert(QDBusConnection::systemBus().interface()->isServiceRegistered(mmService));
-	std::cerr << "Using ModemManager " << qPrintable(mmVersion()) << " at " << qPrintable(_m0.networkTime().toString()) << std::endl;
+	qDBusRegisterMetaType<InterfaceList>();
+	qDBusRegisterMetaType<ManagedObjectList>();
+
+	std::cerr << "Using ModemManager " << qPrintable(mmVersion()) << std::endl;
+	QList<QDBusObjectPath> mdms = modems();
+	std::cerr << "Found " << mdms.count() << " modems: " << std::endl;
+	for(QDBusObjectPath const &p : mdms) {
+		std::cerr << "	" << qPrintable(p.path()) << std::endl;
+		Modem *m = new Modem(p);
+		_modems << m;
+		std::cerr << "		IMEI: " << qPrintable(m->IMEI()) << std::endl;
+		std::cerr << "		Network time: " << qPrintable(m->networkTime().toString()) << std::endl;
+	}
 }
 
 QString ModemApplication::mmVersion() const {
 	QDBusInterface mm(mmService, QStringLiteral("/org/freedesktop/ModemManager1"), QStringLiteral("org.freedesktop.ModemManager1"), QDBusConnection::systemBus());
 	return mm.property("Version").toString();
+}
+
+QList<QDBusObjectPath> ModemApplication::modems() const {
+	QList<QDBusObjectPath> ret;
+	QDBusInterface om(mmService, QStringLiteral("/org/freedesktop/ModemManager1"), QStringLiteral("org.freedesktop.DBus.ObjectManager"), QDBusConnection::systemBus());
+
+	QDBusReply<ManagedObjectList> objects = om.call(QStringLiteral("GetManagedObjects"));
+	ManagedObjectList obj=objects.value();
+	for(ManagedObjectList::Iterator it=obj.begin(); it!=obj.end(); it++) {
+		if(it.key().path().contains("/Modem/"))
+			ret << it.key();
+	}
+	return ret;
 }
 
 void ModemApplication::messageAdded(QDBusObjectPath path, bool received) {

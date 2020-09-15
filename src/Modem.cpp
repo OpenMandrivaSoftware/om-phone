@@ -12,14 +12,16 @@
 
 static QString const mmService(QStringLiteral("org.freedesktop.ModemManager1"));
 
-Modem::Modem(int index) {
-	_dbusPath = QStringLiteral("/org/freedesktop/ModemManager1/Modem/") + QString::number(index);
-	QDBusConnection::systemBus().connect(mmService, _dbusPath, QStringLiteral("org.freedesktop.ModemManager1.Modem.Voice"), QStringLiteral("CallAdded"), this, SLOT(voiceCallAdded(QDBusObjectPath)));
-	QDBusConnection::systemBus().connect(mmService, _dbusPath, QStringLiteral("org.freedesktop.ModemManager1.Modem.Messaging"), QStringLiteral("Added"), this, SLOT(messageAdded(QDBusObjectPath, bool)));
+Modem::Modem(QDBusObjectPath const &obj):_dbusPath(obj) {
+	QDBusConnection::systemBus().connect(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Voice"), QStringLiteral("CallAdded"), this, SLOT(voiceCallAdded(QDBusObjectPath)));
+	QDBusConnection::systemBus().connect(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Messaging"), QStringLiteral("Added"), this, SLOT(messageAdded(QDBusObjectPath, bool)));
+}
+
+Modem::Modem(int index):Modem(QDBusObjectPath(QStringLiteral("/org/freedesktop/ModemManager1/Modem/") + QString::number(index))) {
 }
 
 QDateTime Modem::networkTime() const {
-	QDBusInterface timeInterface(mmService, _dbusPath, QStringLiteral("org.freedesktop.ModemManager1.Modem.Time"), QDBusConnection::systemBus());
+	QDBusInterface timeInterface(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Time"), QDBusConnection::systemBus());
 	QDBusReply<QString> networkTime = timeInterface.call(QStringLiteral("GetNetworkTime"));
 	return QDateTime::fromString(networkTime, Qt::ISODate);
 }
@@ -38,7 +40,7 @@ void Modem::voiceCallAdded(QDBusObjectPath path) {
 }
 
 bool Modem::sendSMS(QString const &recipient, QString const &text) {
-	QDBusInterface messagingInterface(mmService, _dbusPath, QStringLiteral("org.freedesktop.ModemManager1.Modem.Messaging"), QDBusConnection::systemBus());
+	QDBusInterface messagingInterface(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Messaging"), QDBusConnection::systemBus());
 	QVariantMap messageProperties;
 	messageProperties.insert(QStringLiteral("number"), recipient);
 	messageProperties.insert(QStringLiteral("text"), text);
@@ -51,4 +53,9 @@ bool Modem::sendSMS(QString const &recipient, QString const &text) {
 	messageInterface.call(QStringLiteral("Send"));
 	// FIXME check message status
 	return true;
+}
+
+QString Modem::IMEI() const {
+	QDBusInterface modemInterface(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Modem3gpp"), QDBusConnection::systemBus());
+	return modemInterface.property("Imei").toString();
 }
