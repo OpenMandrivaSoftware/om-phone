@@ -10,9 +10,9 @@ typedef QMap<QDBusObjectPath, InterfaceList> ManagedObjects;
 
 class DBusObject {
 protected:
-	DBusObject(QString const &service, QDBusObjectPath const &path, QString const &interfaceBase);
+	DBusObject(QString const &service, QDBusObjectPath const &path, QString const &interface);
 	template <class R> R property(char const * const p, QString const &subInterface=QString()) const {
-		QString interface=_interfaceBase;
+		QString interface=_interface;
 		if(!subInterface.isEmpty())
 			interface += QStringLiteral(".") + subInterface;
 		QDBusInterface i(_service, _path.path(), interface, QDBusConnection::systemBus());
@@ -23,5 +23,5 @@ protected:
 protected:
 	QString const		_service;
 	QDBusObjectPath const	_path;
-	QString const		_interfaceBase;
+	QString const		_interface;
 };

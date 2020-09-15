@@ -6,6 +6,7 @@
 
 #include "DBusObject.h"
 #include "SIM.h"
+#include "Call.h"
 
 class Modem:public QObject,public DBusObject {
 	Q_OBJECT
@@ -19,13 +20,11 @@ public:
 	QString model() const { return DBusObject::property<QString>("Model"); }
 
 	SIM SIM() const;
+	Call *call(QString const &number) const;
 
 public Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
 	void voiceCallAdded(QDBusObjectPath path);
 
 	bool sendSMS(QString const &recipient, QString const &text);
-
-protected:
-	QDBusObjectPath	_dbusPath;
 };

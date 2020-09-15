@@ -7,14 +7,13 @@
 #include <QDBusReply>
 
 #include <QDateTime>
+#include <QTimer>
 
 #include <iostream>
 #include <cassert>
 
-static QString const mmService(QStringLiteral("org.freedesktop.ModemManager1"));
-
-ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv),DBusObject(mmService, QDBusObjectPath("/org/freedesktop/ModemManager1"), "org.freedesktop.ModemManager1") {
-	assert(QDBusConnection::systemBus().interface()->isServiceRegistered(mmService));
+ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv),DBusObject(QStringLiteral("org.freedesktop.ModemManager1"), QDBusObjectPath("/org/freedesktop/ModemManager1"), "org.freedesktop.ModemManager1") {
+	assert(QDBusConnection::systemBus().interface()->isServiceRegistered(_service));
 
 	std::cerr << "Using ModemManager " << qPrintable(mmVersion()) << std::endl;
 	QList<QDBusObjectPath> mdms = modems();

@@ -16,7 +16,7 @@ static void init() {
 	}
 }
 
-DBusObject::DBusObject(QString const &service, QDBusObjectPath const &path, QString const &interfaceBase):_service(service),_path(path),_interfaceBase(interfaceBase) {
+DBusObject::DBusObject(QString const &service, QDBusObjectPath const &path, QString const &interface):_service(service),_path(path),_interface(interface) {
 	init();
 }
 

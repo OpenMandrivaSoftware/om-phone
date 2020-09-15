@@ -8,4 +8,8 @@ add_definitions(${QT_DEFINITIONS})
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050f00)
 include_directories(/usr/include/qt5 /usr/include/qt5/QtCore /usr/include/qt5/QtDBus)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MODEMMANAGER ModemManager REQUIRED)
+add_definitions(${MODEMMANAGER_CFLAGS})
+
 add_subdirectory(src)
