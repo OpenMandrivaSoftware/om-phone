@@ -1,4 +1,5 @@
 #include "ModemApplication.h"
+#include "SIM.h"
 
 #include <QDBusConnection>
 #include <QDBusConnectionInterface>
@@ -24,7 +25,11 @@ ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(arg
 		std::cerr << "	" << qPrintable(m->manufacturer()) << " " << qPrintable(m->model()) << std::endl;
 		std::cerr << "		IMEI: " << qPrintable(m->IMEI()) << std::endl;
 		std::cerr << "		Network time: " << qPrintable(m->networkTime().toString()) << std::endl;
-		std::cerr << "		SIM: " << qPrintable(m->SIM().path()) << std::endl;
+		SIM s = m->SIM();
+		std::cerr << "		SIM identifier: " << qPrintable(s.identifier()) << std::endl;
+		std::cerr << "		SIM IMSI: " << qPrintable(s.IMSI()) << std::endl;
+		std::cerr << "		SIM emergency numbers: " << qPrintable(s.emergencyNumbers().join(QStringLiteral(", "))) << std::endl;
+		std::cerr << "		SIM operator: " << qPrintable(s.operatorName()) << " (" << qPrintable(s.operatorID()) << ")" << std::endl;
 	}
 }
 

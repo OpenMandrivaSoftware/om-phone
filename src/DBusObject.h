@@ -19,6 +19,7 @@ protected:
 		return qvariant_cast<R>(i.property(p));
 	}
 	ManagedObjects managedObjects() const;
+	bool operator == (DBusObject const &other) const { return _path.path() == other._path.path(); }
 protected:
 	QString const		_service;
 	QDBusObjectPath const	_path;

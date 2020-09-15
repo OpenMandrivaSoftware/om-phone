@@ -55,6 +55,6 @@ bool Modem::sendSMS(QString const &recipient, QString const &text) {
 	return true;
 }
 
-QDBusObjectPath Modem::SIM() const {
-	return DBusObject::property<QDBusObjectPath>("Sim");
+SIM Modem::SIM() const {
+	return ::SIM(DBusObject::property<QDBusObjectPath>("Sim"));
 }

@@ -5,6 +5,7 @@
 #include <QString>
 
 #include "DBusObject.h"
+#include "SIM.h"
 
 class Modem:public QObject,public DBusObject {
 	Q_OBJECT
@@ -17,7 +18,7 @@ public:
 	QString manufacturer() const { return DBusObject::property<QString>("Manufacturer"); }
 	QString model() const { return DBusObject::property<QString>("Model"); }
 
-	QDBusObjectPath SIM() const;
+	SIM SIM() const;
 
 public Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
