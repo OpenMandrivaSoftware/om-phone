@@ -26,11 +26,12 @@ ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(arg
 	QList<QDBusObjectPath> mdms = modems();
 	std::cerr << "Found " << mdms.count() << " modems: " << std::endl;
 	for(QDBusObjectPath const &p : mdms) {
-		std::cerr << "	" << qPrintable(p.path()) << std::endl;
 		Modem *m = new Modem(p);
 		_modems << m;
+		std::cerr << "	" << qPrintable(m->manufacturer()) << " " << qPrintable(m->model()) << std::endl;
 		std::cerr << "		IMEI: " << qPrintable(m->IMEI()) << std::endl;
 		std::cerr << "		Network time: " << qPrintable(m->networkTime().toString()) << std::endl;
+		std::cerr << "		SIM: " << qPrintable(m->SIM().path()) << std::endl;
 	}
 }
 

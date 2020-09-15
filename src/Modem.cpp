@@ -55,7 +55,16 @@ bool Modem::sendSMS(QString const &recipient, QString const &text) {
 	return true;
 }
 
-QString Modem::IMEI() const {
-	QDBusInterface modemInterface(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Modem3gpp"), QDBusConnection::systemBus());
-	return modemInterface.property("Imei").toString();
+QDBusObjectPath Modem::SIM() const {
+	QString interface=QStringLiteral("org.freedesktop.ModemManager1.Modem");
+	QDBusInterface modemInterface(mmService, _dbusPath.path(), interface, QDBusConnection::systemBus());
+	return qvariant_cast<QDBusObjectPath>(modemInterface.property("Sim"));
+}
+
+QString Modem::property(char const * const p, QString const &subInterface) const {
+	QString interface=QStringLiteral("org.freedesktop.ModemManager1.Modem");
+	if(!subInterface.isEmpty())
+		interface += QStringLiteral(".") + subInterface;
+	QDBusInterface modemInterface(mmService, _dbusPath.path(), interface, QDBusConnection::systemBus());
+	return modemInterface.property(p).toString();
 }
