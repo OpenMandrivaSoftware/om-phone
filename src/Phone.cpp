@@ -1,4 +1,5 @@
 #include "Phone.h"
+#include "PhoneKeyboard.h"
 #include "SIM.h"
 
 #include <QDBusConnection>

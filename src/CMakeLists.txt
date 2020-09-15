@@ -1,6 +1,6 @@
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-add_executable(phone main.cpp DBusObject.cpp Modem.cpp SIM.cpp Call.cpp Phone.cpp)
+add_executable(phone main.cpp DBusObject.cpp Modem.cpp SIM.cpp Call.cpp Phone.cpp HapticFeedback.cpp RTPushButton.cpp PhoneKeyboard.cpp)
 target_link_libraries(phone Qt5Core Qt5DBus Qt5Gui Qt5Widgets)
 install(TARGETS phone DESTINATION bin)
 configure_file(ch.lindev.phone.desktop.cmake ch.lindev.phone.desktop @ONLY)
