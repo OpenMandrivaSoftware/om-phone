@@ -4,7 +4,6 @@
 #include <QDBusConnectionInterface>
 #include <QDBusInterface>
 #include <QDBusReply>
-#include <qdbusmetatype.h>
 
 #include <QDateTime>
 
@@ -12,15 +11,9 @@
 #include <cassert>
 
 static QString const mmService(QStringLiteral("org.freedesktop.ModemManager1"));
-typedef QMap<QString,QVariantMap> InterfaceList;
-typedef QMap<QDBusObjectPath, InterfaceList> ManagedObjectList;
-Q_DECLARE_METATYPE(InterfaceList);
-Q_DECLARE_METATYPE(ManagedObjectList);
 
-ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv) {
+ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(argc, argv),DBusObject(mmService, QDBusObjectPath("/org/freedesktop/ModemManager1"), "org.freedesktop.ModemManager1") {
 	assert(QDBusConnection::systemBus().interface()->isServiceRegistered(mmService));
-	qDBusRegisterMetaType<InterfaceList>();
-	qDBusRegisterMetaType<ManagedObjectList>();
 
 	std::cerr << "Using ModemManager " << qPrintable(mmVersion()) << std::endl;
 	QList<QDBusObjectPath> mdms = modems();
@@ -36,19 +29,15 @@ ModemApplication::ModemApplication(int &argc, char **&argv):QCoreApplication(arg
 }
 
 QString ModemApplication::mmVersion() const {
-	QDBusInterface mm(mmService, QStringLiteral("/org/freedesktop/ModemManager1"), QStringLiteral("org.freedesktop.ModemManager1"), QDBusConnection::systemBus());
-	return mm.property("Version").toString();
+	return DBusObject::property<QString>("Version");
 }
 
 QList<QDBusObjectPath> ModemApplication::modems() const {
 	QList<QDBusObjectPath> ret;
-	QDBusInterface om(mmService, QStringLiteral("/org/freedesktop/ModemManager1"), QStringLiteral("org.freedesktop.DBus.ObjectManager"), QDBusConnection::systemBus());
-
-	QDBusReply<ManagedObjectList> objects = om.call(QStringLiteral("GetManagedObjects"));
-	ManagedObjectList obj=objects.value();
-	for(ManagedObjectList::Iterator it=obj.begin(); it!=obj.end(); it++) {
-		if(it.key().path().contains("/Modem/"))
-			ret << it.key();
+	ManagedObjects obj=managedObjects();
+	for(auto const &k : obj.keys()) {
+		if(k.path().contains("/Modem/"))
+			ret << k;
 	}
 	return ret;
 }

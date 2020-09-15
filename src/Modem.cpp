@@ -12,7 +12,7 @@
 
 static QString const mmService(QStringLiteral("org.freedesktop.ModemManager1"));
 
-Modem::Modem(QDBusObjectPath const &obj):_dbusPath(obj) {
+Modem::Modem(QDBusObjectPath const &obj):QObject(0),DBusObject(mmService, obj, "org.freedesktop.ModemManager1.Modem"),_dbusPath(obj) {
 	QDBusConnection::systemBus().connect(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Voice"), QStringLiteral("CallAdded"), this, SLOT(voiceCallAdded(QDBusObjectPath)));
 	QDBusConnection::systemBus().connect(mmService, _dbusPath.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Messaging"), QStringLiteral("Added"), this, SLOT(messageAdded(QDBusObjectPath, bool)));
 }
@@ -56,15 +56,5 @@ bool Modem::sendSMS(QString const &recipient, QString const &text) {
 }
 
 QDBusObjectPath Modem::SIM() const {
-	QString interface=QStringLiteral("org.freedesktop.ModemManager1.Modem");
-	QDBusInterface modemInterface(mmService, _dbusPath.path(), interface, QDBusConnection::systemBus());
-	return qvariant_cast<QDBusObjectPath>(modemInterface.property("Sim"));
-}
-
-QString Modem::property(char const * const p, QString const &subInterface) const {
-	QString interface=QStringLiteral("org.freedesktop.ModemManager1.Modem");
-	if(!subInterface.isEmpty())
-		interface += QStringLiteral(".") + subInterface;
-	QDBusInterface modemInterface(mmService, _dbusPath.path(), interface, QDBusConnection::systemBus());
-	return modemInterface.property(p).toString();
+	return DBusObject::property<QDBusObjectPath>("Sim");
 }

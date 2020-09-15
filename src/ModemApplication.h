@@ -6,7 +6,7 @@
 
 #include "Modem.h"
 
-class ModemApplication:public QCoreApplication {
+class ModemApplication:public QCoreApplication,public DBusObject {
 	Q_OBJECT
 public:
 	ModemApplication(int &argc, char **&argv);
