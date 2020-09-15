@@ -74,6 +74,8 @@ void Phone::voiceCallAdded(QDBusObjectPath path) {
 }
 
 bool Phone::show(QString url) {
+	QLabel *l=new QLabel("Death to America");
+	l->show();
 	std::cerr << "Show called" << std::endl;
 	std::cerr << qPrintable(url) << std::endl;
 	return true;
