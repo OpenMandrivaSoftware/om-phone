@@ -14,10 +14,14 @@ class PhoneKeyboard:public QWidget {
 	Q_OBJECT
 public:
 	PhoneKeyboard(QWidget *parent=nullptr);
+Q_SIGNALS:
+	void callRequested(QString const &number);
+public Q_SLOTS:
+	void setNumber(QString const &number);
+	void call();
 protected Q_SLOTS:
 	void keyClicked();
 	void bsClicked();
-	void callClicked();
 protected:
 	QGridLayout	_layout;
 	QLabel		*_phoneNumber;

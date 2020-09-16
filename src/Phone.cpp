@@ -48,6 +48,7 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 
 	_kbd=new PhoneKeyboard;
 	_kbd->resize(300, 400);
+	connect(_kbd, &PhoneKeyboard::callRequested, this, &Phone::call);
 	if(!arguments().contains("--start-hidden"))
 		_kbd->show();
 }
@@ -80,14 +81,33 @@ void Phone::voiceCallAdded(QDBusObjectPath path) {
 }
 
 bool Phone::show(QString url) {
-	QLabel *l=new QLabel("Death to America");
-	l->show();
+	QString number;
+	if(url.startsWith("call://"))
+		number=url.mid(7);
+	else
+		number=url;
 	std::cerr << "Show called" << std::endl;
-	std::cerr << qPrintable(url) << std::endl;
+	std::cerr << qPrintable(number) << std::endl;
+	_kbd->setNumber(number);
+	_kbd->show();
+	_kbd->raise();
+	if(!number.isEmpty())
+		_kbd->call();
 	return true;
 }
 
 bool Phone::hide() {
 	std::cerr << "Hide called" << std::endl;
 	return false;
+}
+
+bool Phone::call(QString const &number) {
+	if(_modems.count()<1) {
+		std::cerr << "No modem found -- can't call" << std::endl;
+		return false;
+	}
+	// FIXME at some point, we should handle devices with
+	// multiple modems
+	Call *c = _modems.at(0)->call(number);
+	c->start();
 }

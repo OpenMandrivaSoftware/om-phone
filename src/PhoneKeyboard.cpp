@@ -61,7 +61,7 @@ PhoneKeyboard::PhoneKeyboard(QWidget *parent):QWidget(parent),_layout(this) {
 	connect(_number, &RTPushButton::clicked, this, &PhoneKeyboard::keyClicked);
 	connect(_backspace, &RTPushButton::clicked, this, &PhoneKeyboard::bsClicked);
 	connect(_plus, &RTPushButton::clicked, this, &PhoneKeyboard::keyClicked);
-	connect(_dial, &RTPushButton::clicked, this, &PhoneKeyboard::callClicked);
+	connect(_dial, &RTPushButton::clicked, this, &PhoneKeyboard::call);
 }
 
 void PhoneKeyboard::keyClicked() {
@@ -89,27 +89,30 @@ void PhoneKeyboard::keyClicked() {
 }
 
 void PhoneKeyboard::bsClicked() {
-	QString t=_phoneNumber->text();
+	QString const t=_phoneNumber->text();
+	setNumber(t.left(t.length()-1));
+}
+
+void PhoneKeyboard::setNumber(QString const &number) {
 #ifdef USE_LIBPHONENUMBER
-	std::string s=t.toStdString();
+	std::string s=number.toStdString();
 	_phoneNumberUtil->NormalizeDiallableCharsOnly(&s);
 	_formattedNumber.clear();
 	_phoneNumberFormatter->Clear();
-	for(int i=0; i<s.length()-1; i++)
+	for(int i=0; i<s.length(); i++)
 		_phoneNumberFormatter->InputDigit(s[i], &_formattedNumber);
 	_phoneNumber->setText(QString::fromStdString(_formattedNumber));
 #else
-	if(t.length())
-		_phoneNumber->setText(t.left(t.length()-1));
+	_phoneNumber->setText(number);
 #endif
 }
 
-void PhoneKeyboard::callClicked() {
+void PhoneKeyboard::call() {
 #ifdef USE_LIBPHONENUMBER
-	std::string number = _formattedNumber;
-	_phoneNumberUtil->NormalizeDiallableCharsOnly(&number);
-	std::cerr << "Should call " << number << std::endl;
+	std::string n = _formattedNumber;
+	_phoneNumberUtil->NormalizeDiallableCharsOnly(&n);
+	emit callRequested(QString::fromStdString(n));
 #else
-	std::cerr << "Should call " << qPrintable(_phoneNumber->text()) << std::endl;
+	emit callRequested(_phoneNumber->text());
 #endif
 }

@@ -22,6 +22,7 @@ public Q_SLOTS:
 	// D-Bus interface
 	Q_SCRIPTABLE bool show(QString url=QString());
 	Q_SCRIPTABLE bool hide();
+	Q_SCRIPTABLE bool call(QString const &number);
 
 protected:
 	QList<Modem*>	_modems;
