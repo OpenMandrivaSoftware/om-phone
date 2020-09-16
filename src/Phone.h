@@ -4,7 +4,7 @@
 #include <QDBusObjectPath>
 #include <QList>
 
-#include "PhoneKeyboard.h"
+#include "PhoneWidget.h"
 #include "Modem.h"
 #include "Call.h"
 
@@ -28,5 +28,5 @@ public Q_SLOTS:
 
 protected:
 	QList<Modem*>	_modems;
-	PhoneKeyboard *	_kbd;
+	PhoneWidget *	_ui;
 };

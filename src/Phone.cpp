@@ -1,5 +1,5 @@
 #include "Phone.h"
-#include "PhoneKeyboard.h"
+#include "PhoneWidget.h"
 #include "SIM.h"
 
 #include <QDBusConnection>
@@ -19,6 +19,7 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 	setApplicationDisplayName("Phone");
 	setOrganizationName("LinDev");
 	setOrganizationDomain("lindev.ch");
+	setQuitOnLastWindowClosed(false);
 
 	assert(QDBusConnection::systemBus().interface()->isServiceRegistered(_service));
 	QDBusConnection sb=QDBusConnection::sessionBus();
@@ -47,11 +48,11 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 		std::cerr << "		SIM operator: " << qPrintable(s.operatorName()) << " (" << qPrintable(s.operatorID()) << ")" << std::endl;
 	}
 
-	_kbd=new PhoneKeyboard;
-	_kbd->resize(300, 400);
-	connect(_kbd, &PhoneKeyboard::callRequested, this, &Phone::call);
+	_ui=new PhoneWidget;
+	_ui->resize(300, 400);
+	connect(_ui, &PhoneWidget::callRequested, this, &Phone::call);
 	if(!arguments().contains("--start-hidden"))
-		_kbd->show();
+		_ui->show();
 }
 
 QString Phone::mmVersion() const {
@@ -107,11 +108,12 @@ bool Phone::show(QString url) {
 		number=url;
 	std::cerr << "Show called" << std::endl;
 	std::cerr << qPrintable(number) << std::endl;
-	_kbd->setNumber(number);
-	_kbd->show();
-	_kbd->raise();
 	if(!number.isEmpty())
-		_kbd->call();
+	_ui->setNumber(number);
+	_ui->show();
+	_ui->raise();
+	if(!number.isEmpty())
+		_ui->call();
 	return true;
 }
 

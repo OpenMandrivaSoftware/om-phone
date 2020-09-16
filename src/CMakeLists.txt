@@ -1,6 +1,6 @@
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-add_executable(phone main.cpp DBusObject.cpp Modem.cpp SIM.cpp Call.cpp Phone.cpp HapticFeedback.cpp RTPushButton.cpp PhoneKeyboard.cpp)
+add_executable(phone main.cpp DBusObject.cpp Modem.cpp SIM.cpp Call.cpp Phone.cpp HapticFeedback.cpp RTPushButton.cpp PhoneKeyboard.cpp PhoneWidget.cpp)
 if(USE_LIBPHONENUMBER)
 	set(PNLIB phonenumber)
 endif()
