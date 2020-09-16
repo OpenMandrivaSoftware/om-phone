@@ -35,6 +35,7 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 	std::cerr << "Found " << mdms.count() << " modems: " << std::endl;
 	for(QDBusObjectPath const &p : mdms) {
 		Modem *m = new Modem(p);
+		connect(m, &Modem::incomingCall, this, &Phone::incomingCall);
 		_modems << m;
 		std::cerr << "	" << qPrintable(m->manufacturer()) << " " << qPrintable(m->model()) << std::endl;
 		std::cerr << "		IMEI: " << qPrintable(m->IMEI()) << std::endl;
@@ -67,6 +68,15 @@ QList<QDBusObjectPath> Phone::modems() const {
 	return ret;
 }
 
+// We're returning an std::string rather than a QString because the
+// only real use of the function is passing its result to libphonenumber
+std::string Phone::phoneLocale() const {
+	// FIXME given this is used for formatting phone numbers, it may
+	// make more sense to determine the SIM card's home country
+	// instead of going for the system locale
+	return QLocale::system().name().split('_').constLast().toUtf8().constData();
+}
+
 void Phone::messageAdded(QDBusObjectPath path, bool received) {
 	if(received)
 		std::cerr << "Message received: ";
@@ -76,8 +86,17 @@ void Phone::messageAdded(QDBusObjectPath path, bool received) {
 	std::cerr << qPrintable(path.path()) << std::endl;
 }
 
-void Phone::voiceCallAdded(QDBusObjectPath path) {
-	std::cerr << "Voice call added: " << qPrintable(path.path()) << std::endl;
+void Phone::incomingCall(Call* call) {
+	std::cerr << "incoming call detected" << std::endl;
+	std::cerr << "Calling number: " << qPrintable(call->number()) << std::endl;
+#ifdef USE_LIBPHONENUMBER
+	i18n::phonenumbers::PhoneNumberUtil* u = i18n::phonenumbers::PhoneNumberUtil::GetInstance();
+	std::string number=call->number().toStdString();
+	i18n::phonenumbers::PhoneNumber n;
+	u->Parse(number, phoneLocale(), &n);
+	u->Format(n, i18n::phonenumbers::PhoneNumberUtil::INTERNATIONAL, &number);
+	std::cerr << "Formatted: " << number << std::endl;
+#endif
 }
 
 bool Phone::show(QString url) {
@@ -107,7 +126,7 @@ bool Phone::call(QString const &number) {
 		return false;
 	}
 	// FIXME at some point, we should handle devices with
-	// multiple modems
+	// multiple modems instead of using the first one
 	Call *c = _modems.at(0)->call(number);
-	c->start();
+	return c->start();
 }

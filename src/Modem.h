@@ -22,6 +22,9 @@ public:
 	SIM SIM() const;
 	Call *call(QString const &number) const;
 
+Q_SIGNALS:
+	void incomingCall(Call *call);
+
 public Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
 	void voiceCallAdded(QDBusObjectPath path);

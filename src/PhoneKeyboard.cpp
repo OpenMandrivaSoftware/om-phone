@@ -1,4 +1,5 @@
 #include "PhoneKeyboard.h"
+#include "Phone.h"
 #include <QLocale>
 #include <iostream>
 
@@ -15,7 +16,7 @@ static inline QString Key(char const * const digit, char const * const letters=n
 PhoneKeyboard::PhoneKeyboard(QWidget *parent):QWidget(parent),_layout(this) {
 #ifdef USE_LIBPHONENUMBER
 	_phoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil::GetInstance();
-	_phoneNumberFormatter = _phoneNumberUtil->PhoneNumberUtil::GetAsYouTypeFormatter(QLocale::system().name().split('_').constLast().toUtf8().constData());
+	_phoneNumberFormatter = _phoneNumberUtil->PhoneNumberUtil::GetAsYouTypeFormatter(static_cast<Phone*>(QCoreApplication::instance())->phoneLocale());
 #endif
 	_phoneNumber = new QLabel(this);
 	_layout.addWidget(_phoneNumber, 0, 0, 1, 3);

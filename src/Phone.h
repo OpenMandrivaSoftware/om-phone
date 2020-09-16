@@ -6,6 +6,7 @@
 
 #include "PhoneKeyboard.h"
 #include "Modem.h"
+#include "Call.h"
 
 class Phone:public QApplication,public DBusObject {
 	Q_OBJECT
@@ -13,10 +14,11 @@ public:
 	Phone(int &argc, char **&argv);
 	QString mmVersion() const;
 	QList<QDBusObjectPath> modems() const;
+	std::string phoneLocale() const;
 
 private Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
-	void voiceCallAdded(QDBusObjectPath path);
+	void incomingCall(Call* call);
 
 public Q_SLOTS:
 	// D-Bus interface

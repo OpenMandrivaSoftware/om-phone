@@ -41,14 +41,14 @@ void Modem::messageAdded(QDBusObjectPath path, bool received) {
 
 void Modem::voiceCallAdded(QDBusObjectPath path) {
 	std::cerr << "Voice call added: " << qPrintable(path.path()) << std::endl;
-
-	std::cerr << "Accepting" << std::endl;
 	Call *c=Call::get(path);
-	if(c) {
-		std::cerr << "Call from " << qPrintable(c->number()) << std::endl;
-		c->accept();
-		QTimer::singleShot(120000, c, &Call::hangup);
-	}
+	if(c->direction() == Call::Direction::Incoming) {
+		std::cerr << "Incoming call" << std::endl;
+		emit incomingCall(c);
+	} else if(c->direction() == Call::Direction::Outgoing) {
+		std::cerr << "Outgoing call" << std::endl;
+	} else
+		std::cerr << "Wrong direction on call" << std::endl;
 }
 
 bool Modem::sendSMS(QString const &recipient, QString const &text) {
@@ -79,13 +79,14 @@ Call *Modem::call(QString const &number) const {
 	QDBusReply<QDBusObjectPath> msg = callInterface.call(QStringLiteral("CreateCall"), callProperties);
 	if(msg.isValid())
 		std::cerr << "valid" << std::endl;
-	std::cerr << "Interface: " << qPrintable(msg.value().path()) << std::endl;
-	std::cerr << "Error: " << qPrintable(msg.error().message()) << std::endl;
-	std::cerr << "Error name: " << qPrintable(msg.error().name()) << std::endl;
+	else {
+		std::cerr << "Interface: " << qPrintable(msg.value().path()) << std::endl;
+		std::cerr << "Error: " << qPrintable(msg.error().message()) << std::endl;
+		std::cerr << "Error name: " << qPrintable(msg.error().name()) << std::endl;
+	}
 	QDBusObjectPath o = msg.value();
 	QString const path = o.path();
 	if(path.isEmpty())
 		return nullptr;
-	std::cerr << "Call::get(" << qPrintable(path) << ")" << std::endl;
 	return Call::get(o);
 }
