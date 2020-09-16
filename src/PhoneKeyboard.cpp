@@ -1,4 +1,6 @@
 #include "PhoneKeyboard.h"
+#include <QLocale>
+#include <iostream>
 
 static inline QString Key(char const * const digit, char const * const letters=nullptr) {
 	QString html=QString::fromLatin1("<center><big><b>") + QString::fromLatin1(digit) + QStringLiteral("</b></big>");
@@ -11,31 +13,103 @@ static inline QString Key(char const * const digit, char const * const letters=n
 }
 
 PhoneKeyboard::PhoneKeyboard(QWidget *parent):QWidget(parent),_layout(this) {
+#ifdef USE_LIBPHONENUMBER
+	_phoneNumberUtil = i18n::phonenumbers::PhoneNumberUtil::GetInstance();
+	_phoneNumberFormatter = _phoneNumberUtil->PhoneNumberUtil::GetAsYouTypeFormatter(QLocale::system().name().split('_').constLast().toUtf8().constData());
+#endif
+	_phoneNumber = new QLabel(this);
+	_layout.addWidget(_phoneNumber, 0, 0, 1, 3);
+
        _digits[1] = new RTPushButton(Key("1"), this, true);
-       _layout.addWidget(_digits[1], 0, 0);
+       _layout.addWidget(_digits[1], 1, 0);
        _digits[2] = new RTPushButton(Key("2", "ABC"), this, true);
-       _layout.addWidget(_digits[2], 0, 1);
+       _layout.addWidget(_digits[2], 1, 1);
        _digits[3] = new RTPushButton(Key("3", "DEF"), this, true);
-       _layout.addWidget(_digits[3], 0, 2);
+       _layout.addWidget(_digits[3], 1, 2);
 
        _digits[4] = new RTPushButton(Key("4", "GHI"), this, true);
-       _layout.addWidget(_digits[4], 1, 0);
+       _layout.addWidget(_digits[4], 2, 0);
        _digits[5] = new RTPushButton(Key("5", "JKL"), this, true);
-       _layout.addWidget(_digits[5], 1, 1);
+       _layout.addWidget(_digits[5], 2, 1);
        _digits[6] = new RTPushButton(Key("6", "MNO"), this, true);
-       _layout.addWidget(_digits[6], 1, 2);
+       _layout.addWidget(_digits[6], 2, 2);
 
        _digits[7] = new RTPushButton(Key("7", "PQRS"), this, true);
-       _layout.addWidget(_digits[7], 2, 0);
+       _layout.addWidget(_digits[7], 3, 0);
        _digits[8] = new RTPushButton(Key("8", "TUV"), this, true);
-       _layout.addWidget(_digits[8], 2, 1);
+       _layout.addWidget(_digits[8], 3, 1);
        _digits[9] = new RTPushButton(Key("9", "WXYZ"), this, true);
-       _layout.addWidget(_digits[9], 2, 2);
+       _layout.addWidget(_digits[9], 3, 2);
 
-       _star = new RTPushButton(Key("*"), this, true);
-       _layout.addWidget(_star, 3, 0);
-       _digits[0] = new RTPushButton(Key("0"), this, true);
-       _layout.addWidget(_digits[0], 3, 1);
-       _number = new RTPushButton(Key("#"), this, true);
-       _layout.addWidget(_number, 3, 2);
+	_star = new RTPushButton(Key("*"), this, true);
+	_layout.addWidget(_star, 4, 0);
+	_digits[0] = new RTPushButton(Key("0"), this, true);
+	_layout.addWidget(_digits[0], 4, 1);
+	_number = new RTPushButton(Key("#"), this, true);
+	_layout.addWidget(_number, 4, 2);
+
+	_backspace = new RTPushButton(Key("&#x232b;"), this, true); // 2190
+	_layout.addWidget(_backspace, 5, 0);
+	_plus = new RTPushButton(Key("+"), this, true);
+	_layout.addWidget(_plus, 5, 1);
+	_dial = new RTPushButton(Key("&#x260e;"), this, true); // 2713
+	_layout.addWidget(_dial, 5, 2);
+
+	for(int i=0; i<10; i++)
+		connect(_digits[i], &RTPushButton::clicked, this, &PhoneKeyboard::keyClicked);
+	connect(_star, &RTPushButton::clicked, this, &PhoneKeyboard::keyClicked);
+	connect(_number, &RTPushButton::clicked, this, &PhoneKeyboard::keyClicked);
+	connect(_backspace, &RTPushButton::clicked, this, &PhoneKeyboard::bsClicked);
+	connect(_plus, &RTPushButton::clicked, this, &PhoneKeyboard::keyClicked);
+	connect(_dial, &RTPushButton::clicked, this, &PhoneKeyboard::callClicked);
+}
+
+void PhoneKeyboard::keyClicked() {
+	char digit = 0;
+	for(uint8_t i=0; i<10; i++) {
+		if(sender() == _digits[i]) {
+			digit = '0'+i;
+			break;
+		}
+	}
+	if(!digit) {
+		if(sender() == _star)
+			digit = '*';
+		else if(sender() == _number)
+			digit = '#';
+		else if(sender() == _plus)
+			digit = '+';
+	}
+#ifdef USE_LIBPHONENUMBER
+	_phoneNumberFormatter->InputDigit(digit, &_formattedNumber);
+	_phoneNumber->setText(QString::fromStdString(_formattedNumber));
+#else
+	_phoneNumber->setText(_phoneNumber->text() + QChar(digit));
+#endif
+}
+
+void PhoneKeyboard::bsClicked() {
+	QString t=_phoneNumber->text();
+#ifdef USE_LIBPHONENUMBER
+	std::string s=t.toStdString();
+	_phoneNumberUtil->NormalizeDiallableCharsOnly(&s);
+	_formattedNumber.clear();
+	_phoneNumberFormatter->Clear();
+	for(int i=0; i<s.length()-1; i++)
+		_phoneNumberFormatter->InputDigit(s[i], &_formattedNumber);
+	_phoneNumber->setText(QString::fromStdString(_formattedNumber));
+#else
+	if(t.length())
+		_phoneNumber->setText(t.left(t.length()-1));
+#endif
+}
+
+void PhoneKeyboard::callClicked() {
+#ifdef USE_LIBPHONENUMBER
+	std::string number = _formattedNumber;
+	_phoneNumberUtil->NormalizeDiallableCharsOnly(&number);
+	std::cerr << "Should call " << number << std::endl;
+#else
+	std::cerr << "Should call " << qPrintable(_phoneNumber->text()) << std::endl;
+#endif
 }
