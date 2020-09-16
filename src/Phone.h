@@ -4,6 +4,7 @@
 #include <QDBusObjectPath>
 #include <QList>
 
+#include "PhoneKeyboard.h"
 #include "Modem.h"
 
 class Phone:public QApplication,public DBusObject {
@@ -23,5 +24,6 @@ public Q_SLOTS:
 	Q_SCRIPTABLE bool hide();
 
 protected:
-	QList<Modem*> _modems;
+	QList<Modem*>	_modems;
+	PhoneKeyboard *	_kbd;
 };

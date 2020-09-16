@@ -11,8 +11,15 @@ int main(int argc, char **argv) {
 		// Activate the previous instance instead of launching a new one
 		QDBusInterface intf(QStringLiteral("ch.lindev.phone"), "/", "", QDBusConnection::sessionBus());
 		QDBusReply<void> r;
-		if(argc>1)
-			r=intf.call("show", argv[1]);
+		QString arg;
+		for(int i=1; i<argc; i++) {
+			if(argv[i][0] != '-') {
+				arg=argv[i];
+				break;
+			}
+		}
+		if(!arg.isEmpty())
+			r=intf.call("show", arg);
 		else
 			r=intf.call("show");
 		return 0;

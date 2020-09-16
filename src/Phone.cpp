@@ -46,9 +46,10 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 		std::cerr << "		SIM operator: " << qPrintable(s.operatorName()) << " (" << qPrintable(s.operatorID()) << ")" << std::endl;
 	}
 
-	PhoneKeyboard *kbd=new PhoneKeyboard;
-	kbd->resize(300, 400);
-	kbd->show();
+	_kbd=new PhoneKeyboard;
+	_kbd->resize(300, 400);
+	if(!arguments().contains("--start-hidden"))
+		_kbd->show();
 }
 
 QString Phone::mmVersion() const {
