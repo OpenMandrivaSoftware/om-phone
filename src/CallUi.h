@@ -10,6 +10,8 @@ class CallUi:public QWidget {
 	Q_OBJECT
 public:
 	CallUi(QWidget *parent=nullptr);
+Q_SIGNALS:
+	void hangup();
 protected Q_SLOTS:
 	void incomingCall(Call* call);
 	void speakerClicked();

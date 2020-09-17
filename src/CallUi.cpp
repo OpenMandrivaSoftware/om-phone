@@ -15,6 +15,7 @@ CallUi::CallUi(QWidget *parent):QWidget(parent),_layout(this) {
 	_explanation=new QLabel(this);
 	_layout.addWidget(_explanation, 0, 0, 1, 2);
 	_hangup=new RTPushButton(ButtonHtml("&#x2718;", tr("Hang up")), this, true);
+	connect(_hangup, &RTPushButton::clicked, this, &CallUi::hangup);
 	_layout.addWidget(_hangup, 1, 0);
 	_redirect=new RTPushButton(ButtonHtml("&#x27a1;", tr("Redirect")), this, true);
 	_layout.addWidget(_redirect, 1, 1);

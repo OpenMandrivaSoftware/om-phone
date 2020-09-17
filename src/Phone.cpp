@@ -1,5 +1,6 @@
 #include "Phone.h"
 #include "PhoneWidget.h"
+#include "AudioManager.h"
 #include "SIM.h"
 
 #include <QDBusConnection>
@@ -53,6 +54,8 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 	connect(_ui, &PhoneWidget::callRequested, this, &Phone::call);
 	if(!arguments().contains("--start-hidden"))
 		_ui->show();
+
+	AudioManager::get()->enableSpeaker();
 }
 
 QString Phone::mmVersion() const {

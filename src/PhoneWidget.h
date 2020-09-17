@@ -20,6 +20,7 @@ public Q_SLOTS:
 
 	void acceptIncoming();
 	void rejectIncoming();
+	void hangup();
 protected Q_SLOTS:
 	void callStateChanged(Call::State old, Call::State New, Call::Reason reason);
 protected:

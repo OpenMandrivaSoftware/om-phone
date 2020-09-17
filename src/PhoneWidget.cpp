@@ -12,6 +12,7 @@ PhoneWidget::PhoneWidget(QWidget* parent):QStackedWidget(parent),_ringtonePlayer
 	connect(_incomingCall, &IncomingCallUi::reject, this, &PhoneWidget::rejectIncoming);
 	addWidget(_incomingCall);
 	_call = new CallUi(this);
+	connect(_call, &CallUi::hangup, this, &PhoneWidget::hangup);
 	addWidget(_call);
 	setCurrentWidget(_kbd);
 }
@@ -81,6 +82,11 @@ void PhoneWidget::acceptIncoming() {
 }
 
 void PhoneWidget::rejectIncoming() {
+	if(_activeCall)
+		_activeCall->hangup();
+}
+
+void PhoneWidget::hangup() {
 	if(_activeCall)
 		_activeCall->hangup();
 }
