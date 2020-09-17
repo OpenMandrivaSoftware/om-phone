@@ -1,5 +1,12 @@
 #include "Call.h"
+#include "Phone.h"
+
 #include <QDBusReply>
+
+#ifdef USE_LIBPHONENUMBER
+#include <phonenumbers/phonenumberutil.h>
+#include <phonenumbers/asyoutypeformatter.h>
+#endif
 
 #include <iostream>
 
@@ -57,7 +64,7 @@ void Call::dtmfHandler(QString dtmf) {
 
 void Call::stateChangeHandler(int old, int New, unsigned int reason) {
 	std::cerr << qPrintable(_path.path()) << ": Call state changed from " << static_cast<State>(old) << " to " << static_cast<State>(New) << " because " << static_cast<Reason>(reason) << std::endl;
-	emit stateChanged(old, New, reason);
+	emit stateChanged(static_cast<State>(old), static_cast<State>(New), static_cast<Reason>(reason));
 }
 
 Call::Direction Call::direction() const {
@@ -70,6 +77,20 @@ Call::State Call::state() const {
 
 QString Call::number() const {
 	return DBusObject::property<QString>("Number");
+}
+
+QString Call::formattedNumber() const {
+#ifdef USE_LIBPHONENUMBER
+	i18n::phonenumbers::PhoneNumberUtil* u = i18n::phonenumbers::PhoneNumberUtil::GetInstance();
+	std::string num=number().toStdString();
+	i18n::phonenumbers::PhoneNumber n;
+	u->Parse(num, static_cast<Phone*>(QApplication::instance())->phoneLocale(), &n);
+	u->Format(n, i18n::phonenumbers::PhoneNumberUtil::INTERNATIONAL, &num);
+	std::cerr << "Formatted: " << num << std::endl;
+	return QString::fromStdString(num);
+#else
+	return number();
+#endif
 }
 
 std::ostream &operator <<(std::ostream &o, Call::State const &s) {

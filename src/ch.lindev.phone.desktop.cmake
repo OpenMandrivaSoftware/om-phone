@@ -9,6 +9,6 @@ Terminal=false
 StartupWMClass=ch.lindev.phone
 Type=Application
 Categories=Phone;Qt;
-MimeType=x-scheme-handler/call;
+MimeType=x-scheme-handler/call;x-scheme-handler/tel;
 Keywords=phone;sms;
 GenericName=Phone

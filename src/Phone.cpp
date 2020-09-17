@@ -90,20 +90,20 @@ void Phone::messageAdded(QDBusObjectPath path, bool received) {
 void Phone::incomingCall(Call* call) {
 	std::cerr << "incoming call detected" << std::endl;
 	std::cerr << "Calling number: " << qPrintable(call->number()) << std::endl;
-#ifdef USE_LIBPHONENUMBER
-	i18n::phonenumbers::PhoneNumberUtil* u = i18n::phonenumbers::PhoneNumberUtil::GetInstance();
-	std::string number=call->number().toStdString();
-	i18n::phonenumbers::PhoneNumber n;
-	u->Parse(number, phoneLocale(), &n);
-	u->Format(n, i18n::phonenumbers::PhoneNumberUtil::INTERNATIONAL, &number);
-	std::cerr << "Formatted: " << number << std::endl;
-#endif
+	std::cerr << "Formatted: " << qPrintable(call->formattedNumber()) << std::endl;
+	_ui->startIncomingCall(call);
 }
 
 bool Phone::show(QString url) {
 	QString number;
 	if(url.startsWith("call://"))
 		number=url.mid(7);
+	else if(url.startsWith("call:"))
+		number=url.mid(5);
+	else if(url.startsWith("tel://"))
+		number=url.mid(6);
+	else if(url.startsWith("tel:"))
+		number=url.mid(4);
 	else
 		number=url;
 	std::cerr << "Show called" << std::endl;
@@ -130,5 +130,5 @@ bool Phone::call(QString const &number) {
 	// FIXME at some point, we should handle devices with
 	// multiple modems instead of using the first one
 	Call *c = _modems.at(0)->call(number);
-	return c->start();
+	return _ui->startOutgoingCall(c);
 }

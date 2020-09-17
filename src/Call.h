@@ -50,6 +50,7 @@ public:
 	Direction direction() const;
 	State state() const;
 	QString number() const;
+	QString formattedNumber() const;
 public Q_SLOTS:
 	bool accept();
 	bool hangup();
@@ -60,7 +61,7 @@ protected Q_SLOTS:
 	void stateChangeHandler(int old, int New, unsigned int reason);
 Q_SIGNALS:
 	void dtmfReceived(QString dtmf);
-	void stateChanged(int old, int New, unsigned int reason);
+	void stateChanged(State old, State New, Reason reason);
 private:
 	static QMap<QString,Call*> _calls;
 };
