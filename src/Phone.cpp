@@ -26,28 +26,14 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 	QDBusConnection sb=QDBusConnection::sessionBus();
 
 	if(!sb.registerService("ch.lindev.phone")) {
-		std::cerr << "Failed to register on session bus" << std::endl;
+		qCritical("Failed to register on session bus");
 		QTimer::singleShot(0, this, &QCoreApplication::quit);
 		return;
 	}
 	sb.registerObject("/", this, QDBusConnection::ExportScriptableSlots);
+	qInfo("Using ModemManager %s", qPrintable(mmVersion()));
 
-	std::cerr << "Using ModemManager " << qPrintable(mmVersion()) << std::endl;
-	QList<QDBusObjectPath> mdms = modems();
-	std::cerr << "Found " << mdms.count() << " modems: " << std::endl;
-	for(QDBusObjectPath const &p : mdms) {
-		Modem *m = new Modem(p);
-		connect(m, &Modem::incomingCall, this, &Phone::incomingCall);
-		_modems << m;
-		std::cerr << "	" << qPrintable(m->manufacturer()) << " " << qPrintable(m->model()) << std::endl;
-		std::cerr << "		IMEI: " << qPrintable(m->IMEI()) << std::endl;
-		std::cerr << "		Network time: " << qPrintable(m->networkTime().toString()) << std::endl;
-		SIM s = m->SIM();
-		std::cerr << "		SIM identifier: " << qPrintable(s.identifier()) << std::endl;
-		std::cerr << "		SIM IMSI: " << qPrintable(s.IMSI()) << std::endl;
-		std::cerr << "		SIM emergency numbers: " << qPrintable(s.emergencyNumbers().join(QStringLiteral(", "))) << std::endl;
-		std::cerr << "		SIM operator: " << qPrintable(s.operatorName()) << " (" << qPrintable(s.operatorID()) << ")" << std::endl;
-	}
+	scanModems();
 
 	_ui=new PhoneWidget;
 	_ui->resize(300, 400);
@@ -56,6 +42,28 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 		_ui->show();
 
 	AudioManager::get()->enableSpeaker();
+}
+
+void Phone::scanModems() {
+	QList<QDBusObjectPath> mdms = modems();
+	qInfo("Found %u modems:", mdms.count());
+	for(QDBusObjectPath const &p : mdms) {
+		Modem *m = new Modem(p);
+		connect(m, &Modem::incomingCall, this, &Phone::incomingCall);
+		_modems << m;
+		qInfo("	%s %s", qPrintable(m->manufacturer()), qPrintable(m->model()));
+		qInfo("		IMEI: %s", qPrintable(m->IMEI()));
+		qInfo("		Network time: %s", qPrintable(m->networkTime().toString()));
+		SIM s = m->SIM();
+		qInfo("		SIM identifier: %s", qPrintable(s.identifier()));
+		qInfo("		SIM IMSI: %s", qPrintable(s.IMSI()));
+		qInfo("		SIM emergency numbers: %s", qPrintable(s.emergencyNumbers().join(QStringLiteral(", "))));
+		qInfo("		SIM operator: %s (%s)", qPrintable(s.operatorName()), qPrintable(s.operatorID()));
+	}
+	if(!_modems.count()) {
+		qCritical("No modems found. Will scan again in 5 seconds.");
+		QTimer::singleShot(5000, this, &Phone::scanModems);
+	}
 }
 
 QString Phone::mmVersion() const {
@@ -83,17 +91,15 @@ std::string Phone::phoneLocale() const {
 
 void Phone::messageAdded(QDBusObjectPath path, bool received) {
 	if(received)
-		std::cerr << "Message received: ";
+		qInfo("Message received: %s", qPrintable(path.path()));
 	else
-		std::cerr << "Message added: ";
-
-	std::cerr << qPrintable(path.path()) << std::endl;
+		qInfo("Message added: %s", qPrintable(path.path()));
 }
 
 void Phone::incomingCall(Call* call) {
-	std::cerr << "incoming call detected" << std::endl;
-	std::cerr << "Calling number: " << qPrintable(call->number()) << std::endl;
-	std::cerr << "Formatted: " << qPrintable(call->formattedNumber()) << std::endl;
+	qInfo("Incoming call detected");
+	qInfo("Calling number: %s", qPrintable(call->number()));
+	qInfo("Formatted: %s", qPrintable(call->formattedNumber()));
 	_ui->startIncomingCall(call);
 }
 
@@ -109,10 +115,11 @@ bool Phone::show(QString url) {
 		number=url.mid(4);
 	else
 		number=url;
-	std::cerr << "Show called" << std::endl;
-	std::cerr << qPrintable(number) << std::endl;
-	if(!number.isEmpty())
-	_ui->setNumber(number);
+	qDebug("Show called");
+	if(!number.isEmpty()) {
+		qDebug("with number %s", qPrintable(number));
+		_ui->setNumber(number);
+	}
 	_ui->show();
 	_ui->raise();
 	if(!number.isEmpty())
@@ -121,13 +128,13 @@ bool Phone::show(QString url) {
 }
 
 bool Phone::hide() {
-	std::cerr << "Hide called" << std::endl;
+	qDebug("Hide called");
 	return false;
 }
 
 bool Phone::call(QString const &number) {
 	if(_modems.count()<1) {
-		std::cerr << "No modem found -- can't call" << std::endl;
+		qCritical("No modem found -- can't call");
 		return false;
 	}
 	// FIXME at some point, we should handle devices with

@@ -92,7 +92,7 @@ HapticFeedback::HapticFeedback(QString const &device) {
 	_effect[0].replay.length = 100;
 	_effect[0].replay.delay = 0;
 	if(ioctl(_fd, EVIOCSFF, &_effect[0]) < 0) {
-		std::cerr << "EVIOCSFF: " << strerror(errno) << std::endl;
+		qDebug("EVIOCSFF: %s", strerror(errno));
 	}
 
 	sendCmd(true);
@@ -106,7 +106,7 @@ bool HapticFeedback::sendCmd(bool start) {
 	cmd.value = start ? 1 : 0;
 	bool ok = write(_fd, &cmd, sizeof(cmd)) == sizeof(cmd);
 	if(!ok) {
-		std::cerr << "EV_FF: " << strerror(errno) << std::endl;
+		qDebug("EV_FF: %s", strerror(errno));
 	}
 	return ok;
 }

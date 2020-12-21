@@ -32,23 +32,21 @@ QDateTime Modem::networkTime() const {
 
 void Modem::messageAdded(QDBusObjectPath path, bool received) {
 	if(received)
-		std::cerr << "Message received: ";
+		qDebug("Message received: %s", qPrintable(path.path()));
 	else
-		std::cerr << "Message added: ";
-
-	std::cerr << qPrintable(path.path()) << std::endl;
+		qDebug("Message added: %s", qPrintable(path.path()));
 }
 
 void Modem::voiceCallAdded(QDBusObjectPath path) {
-	std::cerr << "Voice call added: " << qPrintable(path.path()) << std::endl;
+	qDebug("Voice call added: %s", qPrintable(path.path()));
 	Call *c=Call::get(path);
 	if(c->direction() == Call::Direction::Incoming) {
-		std::cerr << "Incoming call" << std::endl;
+		qDebug("Incoming call");
 		emit incomingCall(c);
 	} else if(c->direction() == Call::Direction::Outgoing) {
-		std::cerr << "Outgoing call" << std::endl;
+		qDebug("Outgoing call");
 	} else
-		std::cerr << "Wrong direction on call" << std::endl;
+		qDebug("Wrong direction on call");
 }
 
 bool Modem::sendSMS(QString const &recipient, QString const &text) {
@@ -75,14 +73,15 @@ Call *Modem::call(QString const &number) const {
 	QDBusInterface callInterface(_service, _path.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Voice"), QDBusConnection::systemBus());
 	QVariantMap callProperties;
 	callProperties.insert(QStringLiteral("number"), number);
-	std::cerr << "Creating call to " << qPrintable(number) << std::endl;
+	qDebug("Creating call to %s", qPrintable(number));
 	QDBusReply<QDBusObjectPath> msg = callInterface.call(QStringLiteral("CreateCall"), callProperties);
 	if(msg.isValid())
-		std::cerr << "valid" << std::endl;
+		qDebug("call is valid");
 	else {
-		std::cerr << "Interface: " << qPrintable(msg.value().path()) << std::endl;
-		std::cerr << "Error: " << qPrintable(msg.error().message()) << std::endl;
-		std::cerr << "Error name: " << qPrintable(msg.error().name()) << std::endl;
+		qCritical("call is NOT valid:");
+		qCritical("Interface: %s", qPrintable(msg.value().path()));
+		qCritical("Error: %s", qPrintable(msg.error().message()));
+		qCritical("Error name: %s", qPrintable(msg.error().name()));
 	}
 	QDBusObjectPath o = msg.value();
 	QString const path = o.path();

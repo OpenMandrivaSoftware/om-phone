@@ -26,7 +26,7 @@ bool PhoneWidget::startIncomingCall(Call* call) {
 	QDBusInterface backlightInterface(QStringLiteral("org.kde.Solid.PowerManagement"), QStringLiteral("/org/kde/Solid/PowerManagement/Actions/BrightnessControl"), QStringLiteral("org.kde.Solid.PowerManagement.Actions.BrightnessControl"), QDBusConnection::sessionBus());
 	QDBusReply<int> brightness=backlightInterface.call("brightness");
 	QDBusReply<int> maxBrightness=backlightInterface.call("brightnessMax");
-	std::cerr << "brightness: " << brightness.value() << " / " << maxBrightness.value() << std::endl;
+	qDebug("brightness: %u / %u", brightness.value(), maxBrightness.value());
 	if(brightness < maxBrightness/10)
 		backlightInterface.call("setBrightness", maxBrightness*.8);
 

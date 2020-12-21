@@ -19,6 +19,7 @@ public:
 private Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
 	void incomingCall(Call* call);
+	void scanModems();
 
 public Q_SLOTS:
 	// D-Bus interface

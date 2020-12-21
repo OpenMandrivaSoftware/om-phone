@@ -7,6 +7,9 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
+	// Enable logging to journald/syslog
+	qputenv("QT_LOGGING_TO_CONSOLE", QByteArray("0"));
+
 	if(QDBusConnection::sessionBus().interface()->isServiceRegistered("ch.lindev.phone")) {
 		// Activate the previous instance instead of launching a new one
 		QDBusInterface intf(QStringLiteral("ch.lindev.phone"), "/", "", QDBusConnection::sessionBus());
@@ -18,10 +21,13 @@ int main(int argc, char **argv) {
 				break;
 			}
 		}
-		if(!arg.isEmpty())
+		if(!arg.isEmpty()) {
+			qDebug("Activating already running phone instance with parameters %s", qPrintable(arg));
 			r=intf.call("show", arg);
-		else
+		} else {
+			qDebug("Activating already running phone instance");
 			r=intf.call("show");
+		}
 		return 0;
 	}
 

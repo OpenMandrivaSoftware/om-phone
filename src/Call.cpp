@@ -63,7 +63,7 @@ void Call::dtmfHandler(QString dtmf) {
 }
 
 void Call::stateChangeHandler(int old, int New, unsigned int reason) {
-	std::cerr << qPrintable(_path.path()) << ": Call state changed from " << static_cast<State>(old) << " to " << static_cast<State>(New) << " because " << static_cast<Reason>(reason) << std::endl;
+	qDebug("%s: Call state changed from %u to %u because %u", qPrintable(_path.path()), old, New, reason);
 	emit stateChanged(static_cast<State>(old), static_cast<State>(New), static_cast<Reason>(reason));
 }
 
@@ -86,7 +86,7 @@ QString Call::formattedNumber() const {
 	i18n::phonenumbers::PhoneNumber n;
 	u->Parse(num, static_cast<Phone*>(QApplication::instance())->phoneLocale(), &n);
 	u->Format(n, i18n::phonenumbers::PhoneNumberUtil::INTERNATIONAL, &num);
-	std::cerr << "Formatted: " << num << std::endl;
+	qDebug("Formatted: %s", num.c_str());
 	return QString::fromStdString(num);
 #else
 	return number();
