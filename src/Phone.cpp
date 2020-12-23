@@ -98,6 +98,9 @@ void Phone::incomingCall(Call* call) {
 	qInfo("Incoming call detected");
 	qInfo("Calling number: %s", qPrintable(call->number()));
 	qInfo("Formatted: %s", qPrintable(call->formattedNumber()));
+	AudioManager::get()->enableEarpiece();
+	AudioManager::get()->enableMicrophone();
+	AudioManager::get()->enableRouting();
 	_ui->startIncomingCall(call);
 }
 
@@ -135,6 +138,13 @@ bool Phone::call(QString const &number) {
 		qCritical("No modem found -- can't call");
 		return false;
 	}
+	// Audio routing needs to be set up before the call
+	// is set up -- if it's done during call setup,
+	// ModemManager crashes badly (probably because of
+	// the firmware)
+	AudioManager::get()->enableEarpiece();
+	AudioManager::get()->enableMicrophone();
+	AudioManager::get()->enableRouting();
 	// FIXME at some point, we should handle devices with
 	// multiple modems instead of using the first one
 	Call *c = _modems.at(0)->call(number);

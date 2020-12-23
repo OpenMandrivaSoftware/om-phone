@@ -63,7 +63,7 @@ void Call::dtmfHandler(QString dtmf) {
 }
 
 void Call::stateChangeHandler(int old, int New, unsigned int reason) {
-	qDebug("%s: Call state changed from %u to %u because %u", qPrintable(_path.path()), old, New, reason);
+	qInfo("%s: Call state changed from %u to %u because %u", qPrintable(_path.path()), old, New, reason);
 	emit stateChanged(static_cast<State>(old), static_cast<State>(New), static_cast<Reason>(reason));
 }
 

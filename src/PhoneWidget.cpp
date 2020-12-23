@@ -55,6 +55,7 @@ bool PhoneWidget::startOutgoingCall(Call* call) {
 	show();
 	raise();
 	connect(call, &Call::stateChanged, this, &PhoneWidget::callStateChanged);
+	_activeCall=call;
 	return call->start();
 }
 
@@ -66,9 +67,6 @@ void PhoneWidget::callStateChanged(Call::State old, Call::State New, Call::Reaso
 	}
 	if(New == Call::State::Active || New == Call::State::Dialing || New == Call::State::RingingOut) {
 		setCurrentWidget(_call);
-		AudioManager::get()->enableEarpiece();
-		AudioManager::get()->enableMicrophone();
-		AudioManager::get()->enableRouting();
 	} else if(New == Call::State::Terminated) {
 		setCurrentWidget(_kbd);
 	}
