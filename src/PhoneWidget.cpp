@@ -90,3 +90,11 @@ void PhoneWidget::hangup() {
 	if(_activeCall)
 		_activeCall->hangup();
 }
+
+void PhoneWidget::reset() {
+	// This happens if ModemManager tells us the modem has been
+	// removed -- could be powered off, or down for a firmware
+	// update, or whatever. Either way we shouldn't be stuck
+	// on a call.
+	setCurrentWidget(_kbd);
+}

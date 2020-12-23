@@ -5,6 +5,7 @@
 
 Q_DECLARE_METATYPE(InterfaceList);
 Q_DECLARE_METATYPE(ManagedObjects);
+Q_DECLARE_METATYPE(QVariantMapList);
 
 static bool initialized = false;
 
@@ -12,6 +13,7 @@ static void init() {
 	if(!initialized) {
 		qDBusRegisterMetaType<InterfaceList>();
 		qDBusRegisterMetaType<ManagedObjects>();
+		qDBusRegisterMetaType<QVariantMapList>();
 		initialized = true;
 	}
 }

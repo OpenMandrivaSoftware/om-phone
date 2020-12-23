@@ -4,9 +4,11 @@
 #include <QDBusObjectPath>
 #include <QDBusConnection>
 #include <QDBusInterface>
+#include <qdbusmetatype.h>
 
 typedef QMap<QString,QVariantMap> InterfaceList;
 typedef QMap<QDBusObjectPath, InterfaceList> ManagedObjects;
+typedef QList<QVariantMap> QVariantMapList;
 
 class DBusObject {
 protected:

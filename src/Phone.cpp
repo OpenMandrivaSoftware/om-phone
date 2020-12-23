@@ -33,6 +33,8 @@ Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStrin
 	sb.registerObject("/", this, QDBusConnection::ExportScriptableSlots);
 	qInfo("Using ModemManager %s", qPrintable(mmVersion()));
 
+	QDBusConnection::systemBus().connect(_service, _path.path(), QStringLiteral("org.freedesktop.DBus.ObjectManager"), QStringLiteral("InterfacesAdded"), this, SLOT(interfaceAdded()));
+	QDBusConnection::systemBus().connect(_service, _path.path(), QStringLiteral("org.freedesktop.DBus.ObjectManager"), QStringLiteral("InterfacesRemoved"), this, SLOT(interfaceRemoved()));
 	scanModems();
 
 	_ui=new PhoneWidget;
@@ -59,10 +61,6 @@ void Phone::scanModems() {
 		qInfo("		SIM IMSI: %s", qPrintable(s.IMSI()));
 		qInfo("		SIM emergency numbers: %s", qPrintable(s.emergencyNumbers().join(QStringLiteral(", "))));
 		qInfo("		SIM operator: %s (%s)", qPrintable(s.operatorName()), qPrintable(s.operatorID()));
-	}
-	if(!_modems.count()) {
-		qCritical("No modems found. Will scan again in 5 seconds.");
-		QTimer::singleShot(5000, this, &Phone::scanModems);
 	}
 }
 
@@ -141,4 +139,28 @@ bool Phone::call(QString const &number) {
 	// multiple modems instead of using the first one
 	Call *c = _modems.at(0)->call(number);
 	return _ui->startOutgoingCall(c);
+}
+
+void Phone::interfaceRemoved() {
+	// ModemManager notified us an interface has been removed.
+	// Let's make sure it isn't a modem we're using.
+	qInfo("ModemManager D-Bus interface removed");
+	if(_modems.count()) {
+		if(!_modems.at(0)->ping()) {
+			qCritical("Modem was removed");
+			delete _modems.at(0);
+			_modems.clear();
+			_ui->reset();
+		} else
+			qInfo("Modem is still ok");
+	}
+}
+
+void Phone::interfaceAdded() {
+	qInfo("ModemManager D-Bus interface added -- checking if it's a new modem");
+	if(!_modems.count()) {
+		scanModems();
+		if(_modems.count())
+			qInfo("Modem found, resuming normal operations");
+	}
 }

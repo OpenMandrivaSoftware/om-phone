@@ -5,6 +5,7 @@
 #include <QDBusConnectionInterface>
 #include <QDBusInterface>
 #include <QDBusReply>
+#include <qdbusmetatype.h>
 #include <QTimer>
 
 #include <QDateTime>
@@ -88,4 +89,42 @@ Call *Modem::call(QString const &number) const {
 	if(path.isEmpty())
 		return nullptr;
 	return Call::get(o);
+}
+
+QList<Operator> const &Modem::scanNetworks() {
+	_operators.clear();
+	QDBusInterface scanInterface(_service, _path.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Modem3gpp"), QDBusConnection::systemBus());
+	qInfo("Scanning networks...");
+	scanInterface.setTimeout(600000);
+	QDBusReply<QVariantMapList> msg = scanInterface.call(QStringLiteral("Scan"));
+	if(msg.isValid()) {
+		QVariantMapList operators = msg.value();
+		for(auto const &v: operators) {
+			qInfo("Found operator:");
+			for(QVariantMap::ConstIterator vit=v.constBegin(); vit!=v.constEnd(); vit++) {
+				qInfo("%s=(%s) %s", qPrintable(vit.key()), vit.value().typeName(), qPrintable(vit.value().toString()));
+			}
+			_operators << v;
+		}
+		for(auto const &o: _operators) {
+			qInfo("Identified operator %s (%s), technology %x, status %u", qPrintable(o.operatorName()), qPrintable(o.operatorCode()), o.accessTechnology(), o.status());
+		}
+	} else
+		qCritical("Failed to scan networks: %s (%s)", qPrintable(msg.error().message()), qPrintable(msg.error().name()));
+
+	return _operators;
+}
+
+void Modem::selectNetwork(Operator const &newOperator) {
+	selectNetwork(newOperator.operatorCode());
+}
+
+void Modem::selectNetwork(QString const &id) {
+	QDBusInterface networkInterface(_service, _path.path(), QStringLiteral("org.freedesktop.ModemManager1.Modem.Modem3gpp"), QDBusConnection::systemBus());
+	qInfo("Joining network %s", qPrintable(id));
+	networkInterface.call(QStringLiteral("Register"), id);
+}
+
+bool Modem::ping() const {
+	return !DBusObject::property<QString>("Model").isEmpty();
 }

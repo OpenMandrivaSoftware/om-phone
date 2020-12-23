@@ -20,6 +20,8 @@ private Q_SLOTS:
 	void messageAdded(QDBusObjectPath path, bool received);
 	void incomingCall(Call* call);
 	void scanModems();
+	void interfaceRemoved();
+	void interfaceAdded();
 
 public Q_SLOTS:
 	// D-Bus interface
