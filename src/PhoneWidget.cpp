@@ -56,7 +56,9 @@ bool PhoneWidget::startOutgoingCall(Call* call) {
 	raise();
 	connect(call, &Call::stateChanged, this, &PhoneWidget::callStateChanged);
 	_activeCall=call;
-	return call->start();
+	bool res= call->start();
+	AudioManager::get()->enableRouting();
+	return res;
 }
 
 void PhoneWidget::callStateChanged(Call::State old, Call::State New, Call::Reason reason) {
@@ -76,7 +78,9 @@ void PhoneWidget::callStateChanged(Call::State old, Call::State New, Call::Reaso
 // handle headless/scripted stuff
 void PhoneWidget::acceptIncoming() {
 	if(_activeCall)
+	{
 		_activeCall->accept();
+	}
 }
 
 void PhoneWidget::rejectIncoming() {

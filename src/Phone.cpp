@@ -16,6 +16,7 @@
 #include <iostream>
 #include <cassert>
 
+
 Phone::Phone(int &argc, char **&argv):QApplication(argc, argv),DBusObject(QStringLiteral("org.freedesktop.ModemManager1"), QDBusObjectPath("/org/freedesktop/ModemManager1"), "org.freedesktop.ModemManager1") {
 	setApplicationDisplayName("Phone");
 	setOrganizationName("LinDev");
@@ -144,7 +145,7 @@ bool Phone::call(QString const &number) {
 	// the firmware)
 	AudioManager::get()->enableEarpiece();
 	AudioManager::get()->enableMicrophone();
-	AudioManager::get()->enableRouting();
+	//AudioManager::get()->enableRouting();
 	// FIXME at some point, we should handle devices with
 	// multiple modems instead of using the first one
 	Call *c = _modems.at(0)->call(number);
