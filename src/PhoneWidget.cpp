@@ -80,6 +80,7 @@ void PhoneWidget::acceptIncoming() {
 	if(_activeCall)
 	{
 		_activeCall->accept();
+		AudioManager::get()->enableRouting();
 	}
 }
 
