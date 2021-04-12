@@ -19,6 +19,9 @@ PhoneWidget::PhoneWidget(QWidget* parent):QStackedWidget(parent),_ringtonePlayer
 
 bool PhoneWidget::startIncomingCall(Call* call) {
 	// Make sure we're visible:
+	// Make sure the screen is turned on
+	QDBusInterface powerInterface(QStringLiteral("local.org_kde_powerdevil"), QStringLiteral("/org/kde/Solid/PowerManagement"), QStringLiteral("org.kde.Solid.PowerManagement"), QDBusConnection::sessionBus());
+	powerInterface.call("wakeup");
 	// Kill the screen locker
 	QDBusInterface lockInterface(QStringLiteral("org.freedesktop.login1"), QStringLiteral("/org/freedesktop/login1"), QStringLiteral("org.freedesktop.login1.Manager"), QDBusConnection::systemBus());
 	lockInterface.call("UnlockSessions");
